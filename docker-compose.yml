@@ -1,0 +1,13 @@
+version: "3"
+
+services:
+  kubot:  
+    container_name: triton
+    image: triton
+    restart: always
+    environment:
+      - TG_API_TOKEN=XXXXXXXXX:XXXXXXXXXXX-XXXXXXXXXXXXXXX
+      - LANGUAGE=spanish
+      - PATH_TO_SAVE=./audios/
+    volumes:
+      - /data/obsidian/Main/001\ -\ 📥\ INBOX:/usr/src/app/audios
