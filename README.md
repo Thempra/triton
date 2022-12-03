@@ -21,7 +21,7 @@ Example:
 version: "3"
 
 services:
-  kubot:
+  triton:
     container_name: triton
     image: triton
     restart: always
@@ -37,5 +37,7 @@ services:
 Run:
 ```
 # docker build . -t triton
+# cp .env.test .env
+# source .env
 # docker-compose up -d
 ```
