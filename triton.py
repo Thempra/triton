@@ -5,11 +5,9 @@ from telegram import Update
 from telegram.ext import Updater, CallbackContext, MessageHandler, Filters
 import whisper
 
-
 tg_api_token =  os.getenv("TG_API_TOKEN")
 path_to_save =  os.getenv("PATH_TO_SAVE", default='./audios/')
 language_whisper =  os.getenv("LANGUAGE")
-
 
 def get_voice(update: Update, context: CallbackContext) -> None:
 	filename=str(datetime.now().timestamp())
@@ -20,21 +18,24 @@ def get_voice(update: Update, context: CallbackContext) -> None:
 	#Download audio
 	new_file = context.bot.get_file(update.message.voice.file_id)
 	new_file.download(audio_file)
-	
+
 	#Transcribe
 	model_fp32 = whisper.load_model(name="small", device="cpu")
 	result = model_fp32.transcribe(audio_file, language=language_whisper)
-	
+
 	#Detect Title
 	result_split = re.split('; |, |\. |\*|\n',result["text"])
-	filename = title = result_split[0] if len (result_split) > 1 else re.split("s", result["text"])[0]
-	
+	filename = result_split[0] if len (result_split) > 1 else re.split("s", result["text"])[0]
+
+	body="".join(result["text"].split(filename))
+	body=''.join(body.split('.', 1))
+
 	fp = open(path_to_save+filename+".md", 'w')
-	fp.write(result["text"])
+	fp.write(body)
 	fp.close()
 	os.remove(audio_file)
 
-	update.message.reply_text(result["text"])
+	update.message.reply_text(filename +"\n\n"+body)
 
 
 if not tg_api_token:
