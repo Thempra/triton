@@ -1,4 +1,4 @@
-# Triton-bot
+# Triton
 
 
 Bot to transcribe a Telegram audio recording and save to your Obsidian Vault with OpenAI's Whisper.
@@ -23,18 +23,28 @@ version: "3"
 services:
   triton:
     container_name: triton
-    image: triton
+    image: thempra/triton
     restart: always
     environment:
       - TG_API_TOKEN=XXXXXXXXXX:XXXXXXXXXXXX-XXXXXXXXXXXXXXX
       - LANGUAGE=spanish
-      - PATH_TO_SAVE=./audios/
-    volumes:
-      - /data/obsidian/Main/001\ -\ 📥\ INBOX:/usr/src/app/audios
 
 ```
 
-Run:
+## Example environment variables
+
+```
+- TG_API_TOKEN=XXXXXXXXX:XXXXXXXXXXXXXXXX-XXXXXXXXXXXXXXXXXX
+- LANGUAGE=spanish
+- BUCKET=bucketname
+- INBOX=001\ -\ 📥\ INBOX
+- ENDPOINT_URL=https://xxxxxx.xxxxxxx.xxx
+- AWS_DEFAULT_REGION=xx-xxxx-xx
+- AWS_ACCESS_KEY_ID=xxxxxxxxxxxxxxxx
+- AWS_SECRET_ACCESS_KEY=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+```
+
+## Run
 ```
 # docker build . -t triton
 # cp .env.test .env

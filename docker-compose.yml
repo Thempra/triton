@@ -1,9 +1,5 @@
 version: "3"
 
-volumes:
-  s3data:
-    driver: local
-
 services:
   triton:
     container_name: triton
@@ -13,18 +9,9 @@ services:
       - TG_API_TOKEN=${TG_API_TOKEN}
       - LANGUAGE=${LANGUAGE}
       - PATH_TO_SAVE=./audios/
-    volumes:
-      - s3data:/usr/src/app/audios
-    depends_on:
-      - "s3vol"
-  s3vol:
-    image: elementar/s3-volume
-    command: /data s3://${BUCKET}/${INBOX}
-    environment:
-      - BACKUP_INTERVAL=${BACKUP_INTERVAL}
       - ENDPOINT_URL=${ENDPOINT_URL}
       - AWS_DEFAULT_REGION=${AWS_DEFAULT_REGION}
       - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
       - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
-    volumes:
-      - s3data:/data
+      - BUCKET=${BUCKET}
+      - INBOX=${INBOX}
