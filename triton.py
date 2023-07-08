@@ -10,7 +10,6 @@ from botocore.client import Config
 
 
 TG_API_TOKEN =  os.getenv("TG_API_TOKEN")
-LANGUAGE_WHISPER =  os.getenv("LANGUAGE")
 
 ENDPOINT_URL = os.getenv("ENDPOINT_URL")
 AWS_DEFAULT_REGION = os.getenv("AWS_DEFAULT_REGION")
