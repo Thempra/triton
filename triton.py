@@ -7,16 +7,22 @@ import whisper
 import boto3
 from botocore.client import Config
 
+
+
 TG_API_TOKEN =  os.getenv("TG_API_TOKEN")
-PATH_TO_SAVE =  os.getenv("PATH_TO_SAVE", default='./audios/')
 LANGUAGE_WHISPER =  os.getenv("LANGUAGE")
-INBOX =  os.getenv("INBOX").replace('\\','')
 
 ENDPOINT_URL = os.getenv("ENDPOINT_URL")
 AWS_DEFAULT_REGION = os.getenv("AWS_DEFAULT_REGION")
 BUCKET = os.getenv("BUCKET")
 AWS_ACCESS_KEY_ID = os.getenv("AWS_ACCESS_KEY_ID")
 AWS_SECRET_ACCESS_KEY = os.getenv("AWS_SECRET_ACCESS_KEY")
+
+PATH_TO_SAVE =  os.getenv("PATH_TO_SAVE", default='./audios/')
+try:
+	INBOX =  os.getenv("INBOX").replace('\\','')
+except Exception as e:
+     INBOX = None
 
 def get_voice(update: Update, context: CallbackContext) -> None:
 	filename=str(datetime.now().timestamp())
@@ -30,7 +36,7 @@ def get_voice(update: Update, context: CallbackContext) -> None:
 
 	#Transcribe
 	model_fp32 = whisper.load_model(name="small", device="cpu")
-	result = model_fp32.transcribe(audio_file, language=LANGUAGE_WHISPER)
+	result = model_fp32.transcribe(audio_file)
 
 	#Detect Title
 	result_split = re.split('; |, |\. |\*|\n',result["text"])
@@ -39,24 +45,30 @@ def get_voice(update: Update, context: CallbackContext) -> None:
 	body="".join(result["text"].split(filename))
 	body=''.join(body.split('.', 1))
 
-	fp = open(PATH_TO_SAVE+filename+".md", 'w')
-	fp.write(body)
-	fp.close()
+	save_file(filename, body)
 	os.remove(audio_file)
 
-	if ENDPOINT_URL:
-		s3 = boto3.resource('s3', 
+	update.message.reply_text(filename +"\n\n"+body)
+
+
+def save_file(title, body):
+    fp = open(PATH_TO_SAVE+title+".md", 'w')
+    fp.write(body)
+    fp.close()
+
+    if ENDPOINT_URL:
+     s3 = boto3.resource('s3', 
 				endpoint_url=ENDPOINT_URL, 
 				aws_access_key_id=AWS_ACCESS_KEY_ID, 
 				aws_secret_access_key=AWS_SECRET_ACCESS_KEY, 
 				config=Config(s3={"addressing_style": "path"}))
 
-		try:
-			s3.Bucket(BUCKET).upload_file(PATH_TO_SAVE+filename+".md", INBOX+"/"+filename+".md")
-		except Exception as e:
-			print("Failed to upload file!")
+     try:
+      s3.Bucket(BUCKET).upload_file(PATH_TO_SAVE+title+".md", INBOX+"/"+title+".md")
+     except Exception as e:
+      print("Failed to upload file!")
 
-	update.message.reply_text(filename +"\n\n"+body)
+
 
 
 if not TG_API_TOKEN:
