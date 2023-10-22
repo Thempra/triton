@@ -87,6 +87,6 @@ if not TG_API_TOKEN:
 	exit()
 
 application = Application.builder().token(TG_API_TOKEN).build()
-application.add_handler(MessageHandler(filters.ALL, get_voice))
+application.add_handler(MessageHandler(filters.VOICE or filters.AUDIO , get_voice))
 application.run_polling(allowed_updates=Update.ALL_TYPES)
 
