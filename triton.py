@@ -44,18 +44,17 @@ async def get_voice(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 	model_fp32 = whisperx.load_model("large-v2", device="cpu", compute_type="int8")
 
 	result = model_fp32.transcribe(AUDIO_FILE)
-	transcribed_text = result['segments'][0]["text"]
-
+	transcribed_text = "".join(segment["text"]+"\n" for segment in result['segments'])
+	
 	if not ONLY_TRANSCRIBE:
 		#Detect Title
 		result_split = re.split('; |, |\. |\*|\n',transcribed_text)
 		filename = result_split[0] if len (result_split) > 1 else re.split("s", transcribed_text)[0]
 
-		body="".join(transcribed_text.split(filename))
-		body=''.join(body.split('.', 1))
-
+		body = transcribed_text.replace(filename, '', 1).lstrip('.')
 		save_file(filename, body)
-		await update.message.reply_text(filename +"\n\n"+body)
+		
+		await update.message.reply_text(f"{filename}\n\n{body}")
 	else:
 		await update.message.reply_text(transcribed_text)
 
@@ -64,27 +63,22 @@ async def get_voice(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
      
 
 def save_file(title, body):
-    fp = open(PATH_TO_SAVE+title+".md", 'w')
-    fp.write(body)
-    fp.close()
-
-    if ENDPOINT_URL:
-     s3 = boto3.resource('s3', 
+	with open(PATH_TO_SAVE + title + ".md", 'w') as fp:
+		fp.write(body)
+	
+	if ENDPOINT_URL:
+		s3 = boto3.resource('s3', 
 				endpoint_url=ENDPOINT_URL, 
 				aws_access_key_id=AWS_ACCESS_KEY_ID, 
 				aws_secret_access_key=AWS_SECRET_ACCESS_KEY, 
 				config=Config(s3={"addressing_style": "path"}))
-
-     try:
-      s3.Bucket(BUCKET).upload_file(PATH_TO_SAVE+title+".md", INBOX+"/"+title+".md")
-     except Exception as e:
-      print("Failed to upload file!")
-
+		try:
+			s3.Bucket(BUCKET).upload_file(PATH_TO_SAVE+title+".md", INBOX+"/"+title+".md")
+		except Exception as e:
+			print("Failed to upload file!")
 
 
-if not TG_API_TOKEN:
-	print("Please, fill TG_API_TOKEN.")
-	exit()
+if not TG_API_TOKEN: print("Please, fill TG_API_TOKEN."); exit()
 
 application = Application.builder().token(TG_API_TOKEN).build()
 application.add_handler(MessageHandler(filters.VOICE or filters.AUDIO , get_voice))
